@@ -20,11 +20,10 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
   const tableBody = document.querySelector("#trackerTable tbody");
   const row = document.createElement("tr");
 
-  // Account
   const account = document.createElement("td");
   account.innerText = accountName;
+  account.setAttribute("data-label", "Account");
 
-  // Coins (numbers only input)
   const coins = document.createElement("td");
   const coinsInput = document.createElement("input");
   coinsInput.type = "number";
@@ -32,24 +31,24 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
   coinsInput.value = coinsVal;
   coinsInput.addEventListener("input", updateTimestamp);
   coins.appendChild(coinsInput);
+  coins.setAttribute("data-label", "Coins");
 
-  // Voucher (editable)
   const voucher = document.createElement("td");
   voucher.contentEditable = true;
   voucher.innerText = voucherVal;
   voucher.addEventListener("input", updateTimestamp);
+  voucher.setAttribute("data-label", "Voucher");
 
-  // Item Bought (editable)
   const item = document.createElement("td");
   item.contentEditable = true;
   item.innerText = itemVal;
   item.addEventListener("input", updateTimestamp);
+  item.setAttribute("data-label", "Item Bought");
 
-  // Last Updated
   const lastUpdated = document.createElement("td");
   lastUpdated.innerText = lastUpdate || new Date().toLocaleString();
+  lastUpdated.setAttribute("data-label", "Last Updated");
 
-  // Action
   const action = document.createElement("td");
   const deleteBtn = document.createElement("button");
   deleteBtn.classList.add("delete-btn");
@@ -63,6 +62,7 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
     });
   }
   action.appendChild(deleteBtn);
+  action.setAttribute("data-label", "Action");
 
   function updateTimestamp() {
     lastUpdated.innerText = new Date().toLocaleString();
@@ -78,10 +78,10 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
 function resetAll() {
   document.querySelectorAll("#trackerTable tbody tr").forEach(row => {
     const cells = row.querySelectorAll("td");
-    cells[1].querySelector("input").value = "0"; // Coins
-    cells[2].innerText = "-";                     // Voucher
-    cells[3].innerText = "-";                     // Item Bought
-    cells[4].innerText = new Date().toLocaleString(); // Last Updated
+    cells[1].querySelector("input").value = "0";
+    cells[2].innerText = "-";
+    cells[3].innerText = "-";
+    cells[4].innerText = new Date().toLocaleString();
   });
   saveData();
 }
@@ -111,8 +111,18 @@ window.onload = () => {
 // Event listeners
 document.getElementById("resetAll").addEventListener("click", resetAll);
 
-document.getElementById("addAccount").addEventListener("click", () => {
-  const accountName = prompt("Enter new account name:");
+const addBtn = document.getElementById("addAccount");
+const input = document.getElementById("newAccountInput");
+
+addBtn.addEventListener("click", () => {
+  const accountName = input.value.trim();
   if (!accountName) return;
   addRow(accountName, "0", "-", "-", null, false);
+  input.value = ""; // clear input after adding
+});
+
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    addBtn.click();
+  }
 });

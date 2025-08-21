@@ -1,6 +1,6 @@
 body {
   font-family: 'Poppins', sans-serif;
-  background: #ffe6f2; /* very subtle pastel pink */
+  background: #ffe6f2; /* subtle pastel pink */
   margin: 0;
   padding: 0;
   display: flex;
@@ -11,7 +11,7 @@ body {
 
 .app-container {
   margin-top: 40px;
-  background: #fff0f6; /* soft pastel pink container */
+  background: #fff0f6;
   padding: 25px;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(255, 105, 180, 0.15);
@@ -21,7 +21,7 @@ body {
 
 h1 {
   text-align: center;
-  color: #ff99c8; /* pastel pink heading */
+  color: #ff99c8;
   margin-bottom: 20px;
 }
 
@@ -40,23 +40,21 @@ th, td {
 }
 
 th {
-  background: #ffcce6; /* pastel pink header */
+  background: #ffcce6;
   color: white;
   font-weight: 500;
 }
 
-/* alternating row colors */
 tbody tr:nth-child(odd) {
-  background-color: #fff0f6; /* light pastel pink */
+  background-color: #fff0f6;
 }
 
 tbody tr:nth-child(even) {
-  background-color: #ffe6f8; /* slightly different pastel pink */
+  background-color: #ffe6f8;
 }
 
-/* row hover */
 tbody tr:hover {
-  background-color: #ffd6eb !important; /* highlight row on hover */
+  background-color: #ffd6eb !important;
   transition: background-color 0.2s;
 }
 
@@ -75,7 +73,7 @@ td[contenteditable="true"]:focus, td input[type="number"]:focus {
 }
 
 button {
-  background: #ff99c8; /* pastel pink */
+  background: #ff99c8;
   color: white;
   border: none;
   padding: 10px 18px;
@@ -87,7 +85,7 @@ button {
 }
 
 button:hover {
-  background: #ff80b3; /* slightly darker pink on hover */
+  background: #ff80b3;
 }
 
 .delete-btn {
@@ -103,4 +101,68 @@ button:hover {
 .button-area {
   margin-top: 20px;
   text-align: center;
+}
+
+#newAccountInput {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #ffb3d9;
+  margin: 0 4px;
+  width: 160px;
+}
+
+/* Responsive for mobile devices */
+@media (max-width: 600px) {
+  .app-container {
+    padding: 15px;
+    width: 95%;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 15px;
+    border: 1px solid #ffd6eb;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #fff0f6;
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+  }
+
+  td input[type="number"], td[contenteditable="true"] {
+    width: 50px;
+    font-size: 14px;
+  }
+
+  .button-area button, #newAccountInput {
+    padding: 8px;
+    font-size: 13px;
+    margin: 2px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .button-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
