@@ -3,97 +3,114 @@ function saveData() {
   const tableData = [];
   document.querySelectorAll("#trackerTable tbody tr").forEach(row => {
     const rowData = [];
-    const cells = row.querySelectorAll("td");
-    rowData.push(cells[0].innerText); // Account
-    rowData.push(cells[1].querySelector("input").value); // Coins
-    rowData.push(cells[2].innerText); // Voucher
-    rowData.push(cells[3].innerText); // Item Bought
-    rowData.push(cells[4].innerText); // Last Updated
-    rowData.push(cells[5].querySelector("button").disabled ? "fixed" : "extra");
+    row.querySelectorAll("td").forEach((cell, index) => {
+      if (index === 4) { // Last Updated column
+        rowData.push(cell.getAttribute("data-timestamp") || new Date().toISOString());
+      } else if (index < 5) {
+        rowData.push(cell.innerText);
+      }
+    });
     tableData.push(rowData);
   });
   localStorage.setItem("trackerData", JSON.stringify(tableData));
 }
 
-// Add row function
-function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-", lastUpdate = null, isFixed = true) {
+// Helper function to get "time ago" string
+function timeAgo(timestamp) {
+  const now = new Date();
+  const diff = now - timestamp; // difference in milliseconds
+  const mins = Math.floor(diff / 1000 / 60);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} min${mins > 1 ? "s" : ""} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+// Add row (editable cells: coins, voucher, item)
+function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-", lastUpdate = null) {
   const tableBody = document.querySelector("#trackerTable tbody");
   const row = document.createElement("tr");
 
+  // Account (fixed)
   const account = document.createElement("td");
   account.innerText = accountName;
-  account.setAttribute("data-label", "Account");
 
+  // Coins (numbers only)
   const coins = document.createElement("td");
-  const coinsInput = document.createElement("input");
-  coinsInput.type = "number";
-  coinsInput.min = 0;
-  coinsInput.value = coinsVal;
-  coinsInput.addEventListener("input", updateTimestamp);
-  coins.appendChild(coinsInput);
-  coins.setAttribute("data-label", "Coins");
+  coins.contentEditable = true;
+  coins.innerText = coinsVal;
+  coins.addEventListener("input", () => {
+    coins.innerText = coins.innerText.replace(/[^0-9]/g, "");
+    updateTimestamp();
+  });
 
+  // Voucher
   const voucher = document.createElement("td");
   voucher.contentEditable = true;
   voucher.innerText = voucherVal;
-  voucher.addEventListener("input", updateTimestamp);
-  voucher.setAttribute("data-label", "Voucher");
 
+  // Item Bought
   const item = document.createElement("td");
   item.contentEditable = true;
   item.innerText = itemVal;
-  item.addEventListener("input", updateTimestamp);
-  item.setAttribute("data-label", "Item Bought");
 
+  // Last Updated
   const lastUpdated = document.createElement("td");
-  lastUpdated.innerText = lastUpdate || new Date().toLocaleString();
-  lastUpdated.setAttribute("data-label", "Last Updated");
+  let updatedTime = lastUpdate ? new Date(lastUpdate) : new Date();
+  lastUpdated.setAttribute("data-timestamp", updatedTime.toISOString());
+  lastUpdated.innerText = timeAgo(updatedTime);
 
+  // Action
   const action = document.createElement("td");
   const deleteBtn = document.createElement("button");
-  deleteBtn.classList.add("delete-btn");
   deleteBtn.innerText = "❌";
-  if (isFixed) {
-    deleteBtn.disabled = true;
-  } else {
-    deleteBtn.addEventListener("click", () => {
-      row.remove();
-      saveData();
-    });
-  }
+  deleteBtn.classList.add("delete-btn");
+  deleteBtn.disabled = true; // fixed accounts cannot be deleted
   action.appendChild(deleteBtn);
-  action.setAttribute("data-label", "Action");
 
+  // Update timestamp on edit
   function updateTimestamp() {
-    lastUpdated.innerText = new Date().toLocaleString();
+    updatedTime = new Date();
+    lastUpdated.setAttribute("data-timestamp", updatedTime.toISOString());
+    lastUpdated.innerText = timeAgo(updatedTime);
     saveData();
   }
+
+  [coins, voucher, item].forEach(cell => {
+    cell.addEventListener("input", updateTimestamp);
+  });
 
   [account, coins, voucher, item, lastUpdated, action].forEach(cell => row.appendChild(cell));
   tableBody.appendChild(row);
   saveData();
+
+  // Update "time ago" every minute
+  setInterval(() => {
+    lastUpdated.innerText = timeAgo(updatedTime);
+  }, 60000);
 }
 
-// Reset All
+// Reset all coins, voucher, item and update Last Updated
 function resetAll() {
   document.querySelectorAll("#trackerTable tbody tr").forEach(row => {
     const cells = row.querySelectorAll("td");
-    cells[1].querySelector("input").value = "0";
-    cells[2].innerText = "-";
-    cells[3].innerText = "-";
-    cells[4].innerText = new Date().toLocaleString();
+    cells[1].innerText = "0";   // Coins
+    cells[2].innerText = "-";   // Voucher
+    cells[3].innerText = "-";   // Item Bought
+    const now = new Date();
+    cells[4].setAttribute("data-timestamp", now.toISOString());
+    cells[4].innerText = timeAgo(now);
   });
   saveData();
 }
 
-// Load data or defaults
+// Load saved data or default accounts
 window.onload = () => {
   const savedData = JSON.parse(localStorage.getItem("trackerData"));
   if (savedData && savedData.length > 0) {
-    savedData.forEach(rowData => {
-      const isFixed = rowData[5] === "fixed";
-      addRow(rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], isFixed);
-    });
+    savedData.forEach(rowData => addRow(...rowData));
   } else {
     const defaultAccounts = [
       "amalanmulia",
@@ -108,21 +125,14 @@ window.onload = () => {
   }
 };
 
-// Event listeners
-document.getElementById("resetAll").addEventListener("click", resetAll);
-
-const addBtn = document.getElementById("addAccount");
-const input = document.getElementById("newAccountInput");
-
-addBtn.addEventListener("click", () => {
-  const accountName = input.value.trim();
-  if (!accountName) return;
-  addRow(accountName, "0", "-", "-", null, false);
-  input.value = ""; // clear input after adding
-});
-
-input.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    addBtn.click();
+// Add Account button functionality
+document.getElementById("addAccount").addEventListener("click", () => {
+  const newAcc = document.getElementById("newAccountInput").value.trim();
+  if (newAcc) {
+    addRow(newAcc);
+    document.getElementById("newAccountInput").value = "";
   }
 });
+
+// Reset All button
+document.getElementById("resetAll").addEventListener("click", resetAll);
