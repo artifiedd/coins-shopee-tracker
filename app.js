@@ -4,7 +4,7 @@ function saveData() {
   document.querySelectorAll("#trackerTable tbody tr").forEach(row => {
     const rowData = [];
     row.querySelectorAll("td").forEach((cell, index) => {
-      if (index === 4) { // Last Updated column
+      if (index === 4) { // Last Updated
         rowData.push(cell.getAttribute("data-timestamp") || new Date().toISOString());
       } else if (index < 5) {
         rowData.push(cell.innerText);
@@ -15,10 +15,10 @@ function saveData() {
   localStorage.setItem("trackerData", JSON.stringify(tableData));
 }
 
-// Helper function to get "time ago" string
+// Convert timestamp to "time ago"
 function timeAgo(timestamp) {
   const now = new Date();
-  const diff = now - timestamp; // difference in milliseconds
+  const diff = now - timestamp;
   const mins = Math.floor(diff / 1000 / 60);
   if (mins < 1) return "Just now";
   if (mins < 60) return `${mins} min${mins > 1 ? "s" : ""} ago`;
@@ -28,16 +28,16 @@ function timeAgo(timestamp) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-// Add row (editable cells: coins, voucher, item)
-function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-", lastUpdate = null) {
+// Add row function
+function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-", lastUpdate = null, fixed = false) {
   const tableBody = document.querySelector("#trackerTable tbody");
   const row = document.createElement("tr");
 
-  // Account (fixed)
+  // Account column
   const account = document.createElement("td");
   account.innerText = accountName;
 
-  // Coins (numbers only)
+  // Coins column (numbers only)
   const coins = document.createElement("td");
   coins.contentEditable = true;
   coins.innerText = coinsVal;
@@ -67,10 +67,10 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
   const deleteBtn = document.createElement("button");
   deleteBtn.innerText = "❌";
   deleteBtn.classList.add("delete-btn");
-  deleteBtn.disabled = true; // fixed accounts cannot be deleted
+  deleteBtn.disabled = fixed; // disable delete for fixed accounts
   action.appendChild(deleteBtn);
 
-  // Update timestamp on edit
+  // Update timestamp
   function updateTimestamp() {
     updatedTime = new Date();
     lastUpdated.setAttribute("data-timestamp", updatedTime.toISOString());
@@ -92,13 +92,13 @@ function addRow(accountName = "", coinsVal = "0", voucherVal = "-", itemVal = "-
   }, 60000);
 }
 
-// Reset all coins, voucher, item and update Last Updated
+// Reset all coins, voucher, item, and Last Updated
 function resetAll() {
   document.querySelectorAll("#trackerTable tbody tr").forEach(row => {
     const cells = row.querySelectorAll("td");
-    cells[1].innerText = "0";   // Coins
-    cells[2].innerText = "-";   // Voucher
-    cells[3].innerText = "-";   // Item Bought
+    cells[1].innerText = "0";
+    cells[2].innerText = "-";
+    cells[3].innerText = "-";
     const now = new Date();
     cells[4].setAttribute("data-timestamp", now.toISOString());
     cells[4].innerText = timeAgo(now);
@@ -110,7 +110,10 @@ function resetAll() {
 window.onload = () => {
   const savedData = JSON.parse(localStorage.getItem("trackerData"));
   if (savedData && savedData.length > 0) {
-    savedData.forEach(rowData => addRow(...rowData));
+    savedData.forEach((rowData, index) => {
+      const isFixed = index < 7; // first 7 rows are fixed accounts
+      addRow(...rowData, isFixed);
+    });
   } else {
     const defaultAccounts = [
       "amalanmulia",
@@ -121,15 +124,15 @@ window.onload = () => {
       "facebook twinkledream",
       "apple"
     ];
-    defaultAccounts.forEach(acc => addRow(acc));
+    defaultAccounts.forEach(acc => addRow(acc, "0", "-", "-", null, true));
   }
 };
 
-// Add Account button functionality
+// Add Account button
 document.getElementById("addAccount").addEventListener("click", () => {
   const newAcc = document.getElementById("newAccountInput").value.trim();
   if (newAcc) {
-    addRow(newAcc);
+    addRow(newAcc); // new accounts are not fixed
     document.getElementById("newAccountInput").value = "";
   }
 });
