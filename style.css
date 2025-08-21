@@ -1,6 +1,6 @@
 body {
   font-family: 'Poppins', sans-serif;
-  background: #ffe6f2; /* subtle pastel pink */
+  background: #ffe6f2;
   margin: 0;
   padding: 0;
   display: flex;
@@ -26,7 +26,7 @@ h1 {
 }
 
 .table-wrapper {
-  overflow-x: auto; /* horizontal scroll for small screens */
+  overflow-x: auto;
 }
 
 table {
@@ -34,7 +34,7 @@ table {
   border-collapse: collapse;
   background: white;
   border-radius: 15px;
-  min-width: 600px; /* prevents columns from shrinking too much */
+  min-width: 600px;
 }
 
 th, td {
